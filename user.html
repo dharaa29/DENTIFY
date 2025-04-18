@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Self Diagnosis</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+      }
+
+      .navbar {
+        background-color: #007bff;
+      }
+
+      .navbar-brand {
+        font-weight: bold;
+      }
+
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        margin: 50px auto;
+      }
+
+      h2 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      button {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      #diagnosisResult {
+        text-align: center;
+        margin-top: 15px;
+        font-weight: bold;
+        color: green;
+      }
+
+      #errorMessage {
+        text-align: center;
+        margin-top: 10px;
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Appointment System</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/user">Check</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/bookappointment">Book Appointment</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/viewappointment">View Appointment</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/">Logout</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Diagnosis Form -->
+    <div class="container">
+      {%if session["role"]=="patients"%}
+      <a href="/oldreports"
+        ><button class="btn btn-primary">check your report</button></a
+      >
+      {%endif%}
+      <h2>Self Diagnosis</h2>
+      {%if session["role"]=="patients"%}
+      <div class="mb-3">
+        <label class="form-label">Enter patient id</label>
+        <input
+          type="text"
+          id="pid"
+          class="form-control"
+          value="{{session['username']}}"
+          readonly
+          placeholder="Enter patients id"
+        />
+      </div>
+      {%else%}
+      <div class="mb-3">
+        <label class="form-label">Enter patient id</label>
+        <input
+          type="text"
+          id="pid"
+          class="form-control"
+          placeholder="Enter patients id"
+        />
+      </div>
+      {%endif%}
+      <div class="mb-3">
+        <label class="form-label">Upload Medical Image:</label>
+        <input type="file" id="image" class="form-control" accept="image/*" />
+      </div>
+
+      <button onclick="submitDiagnosis()">Get Diagnosis</button>
+
+      <p id="diagnosisResult"></p>
+      <p id="errorMessage"></p>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      function submitDiagnosis() {
+        let imageFile = document.getElementById("image").files[0];
+        let resultDiv = document.getElementById("diagnosisResult");
+        let errorDiv = document.getElementById("errorMessage");
+
+        // Clear previous messages
+        resultDiv.innerText = "";
+        errorDiv.innerText = "";
+
+        if (!imageFile) {
+          errorDiv.innerText = "⚠️ Please upload an image before submitting.";
+          return;
+        }
+
+        let formData = new FormData();
+        formData.append("image", imageFile);
+        formData.append("image1", imageFile);
+        formData.append("id", document.querySelector("#pid").value);
+
+        fetch("http://127.0.0.1:5000/diagnose", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.error) {
+              errorDiv.innerText = "⚠️ " + data.error;
+            } else {
+              resultDiv.innerHTML = `
+                        <strong>Diagnosis:</strong> ${data.image} <br>
+                        <strong>Symptoms:</strong> ${data.DISEASE_INFO.symptoms} <br>
+                        <strong>Suggestion:</strong> ${data.DISEASE_INFO.suggestion}
+                    `;
+            }
+          })
+          .catch((error) => {
+            errorDiv.innerText =
+              "⚠️ Error processing your request. Please try again later.";
+          });
+      }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

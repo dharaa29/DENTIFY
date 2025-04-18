@@ -1,0 +1,10 @@
+# YOLOv10 experiment name
+name: dental_calculus_detection
+
+# Path to directory containing training and validation images
+train: ./images/train
+val: ./images/val
+
+# Path to YAML file containing class names
+nc: 1
+names: ["Caries", "Ulcer", "Tooth Discoloration", "Gingivitis"]
